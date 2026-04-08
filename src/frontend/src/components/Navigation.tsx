@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useSpeech } from "@/hooks/useSpeech";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/stores/cartStore";
 import { Link } from "@tanstack/react-router";
@@ -8,16 +9,62 @@ import {
   Menu,
   ShoppingCart,
   User,
+  Volume2,
   X,
 } from "lucide-react";
 import { useState } from "react";
 
 const NAV_LINKS = [
-  { label: "Home", to: "/home" },
-  { label: "Products", to: "/products" },
-  { label: "About", to: "/about" },
-  { label: "Contact", to: "/contact" },
+  { label: "Home", to: "/home", speech: "Home page. Go to home." },
+  {
+    label: "Products",
+    to: "/products",
+    speech: "Products. Browse all products.",
+  },
+  {
+    label: "About",
+    to: "/about",
+    speech: "About. Learn more about AccessShop.",
+  },
+  {
+    label: "Contact",
+    to: "/contact",
+    speech: "Contact. Get in touch with us.",
+  },
 ];
+
+interface AudioButtonProps {
+  speech: string;
+  label: string;
+  className?: string;
+}
+
+function AudioButton({ speech, label, className }: AudioButtonProps) {
+  const { speak, isSpeaking } = useSpeech();
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        speak(speech);
+      }}
+      aria-label={`Read aloud: ${label}`}
+      title={`Listen: ${label}`}
+      className={cn(
+        "inline-flex items-center justify-center rounded-md transition-colors duration-200",
+        "min-h-[28px] min-w-[28px] p-1",
+        "text-muted-foreground hover:text-primary hover:bg-primary/10",
+        "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
+        isSpeaking && "text-primary animate-pulse",
+        className,
+      )}
+      data-ocid={`audio-nav-${label.toLowerCase().replace(/\s+/g, "-")}`}
+    >
+      <Volume2 className="h-3.5 w-3.5" aria-hidden="true" />
+    </button>
+  );
+}
 
 interface NavigationProps {
   onAccessibilityToggle: () => void;
@@ -70,34 +117,42 @@ export function Navigation({
           data-ocid="nav-main"
         >
           {NAV_LINKS.map((link) => (
+            <div key={link.to} className="flex items-center gap-0.5">
+              <Link
+                to={link.to}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 min-h-[44px] flex items-center",
+                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
+                  isActive(link.to)
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                )}
+                data-ocid={`nav-link-${link.label.toLowerCase()}`}
+              >
+                {link.label}
+              </Link>
+              <AudioButton speech={link.speech} label={link.label} />
+            </div>
+          ))}
+          <div className="flex items-center gap-0.5">
             <Link
-              key={link.to}
-              to={link.to}
+              to="/accessibility"
               className={cn(
                 "px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 min-h-[44px] flex items-center",
                 "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
-                isActive(link.to)
-                  ? "bg-primary/10 text-primary font-semibold"
+                isActive("/accessibility")
+                  ? "bg-accent/10 text-accent font-semibold"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted",
               )}
-              data-ocid={`nav-link-${link.label.toLowerCase()}`}
+              data-ocid="nav-link-accessibility"
             >
-              {link.label}
+              Accessibility
             </Link>
-          ))}
-          <Link
-            to="/accessibility"
-            className={cn(
-              "px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 min-h-[44px] flex items-center",
-              "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
-              isActive("/accessibility")
-                ? "bg-accent/10 text-accent font-semibold"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted",
-            )}
-            data-ocid="nav-link-accessibility"
-          >
-            Accessibility
-          </Link>
+            <AudioButton
+              speech="Accessibility. View accessibility settings and guides."
+              label="Accessibility"
+            />
+          </div>
         </nav>
 
         {/* Right side actions */}
@@ -114,23 +169,30 @@ export function Navigation({
             <Accessibility className="h-5 w-5" />
           </Button>
 
-          {/* Cart */}
-          <Link
-            to="/cart"
-            className="relative min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
-            aria-label={`Cart with ${itemCount} items`}
-            data-ocid="nav-cart"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {itemCount > 0 && (
-              <span
-                className="absolute -top-1 -right-1 w-5 h-5 rounded-full gradient-primary text-white text-xs flex items-center justify-center font-bold animate-scale-in"
-                aria-hidden="true"
-              >
-                {itemCount > 99 ? "99+" : itemCount}
-              </span>
-            )}
-          </Link>
+          {/* Cart with audio */}
+          <div className="flex items-center gap-0.5">
+            <Link
+              to="/cart"
+              className="relative min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1"
+              aria-label={`Cart with ${itemCount} items`}
+              data-ocid="nav-cart"
+            >
+              <ShoppingCart className="h-5 w-5" />
+              {itemCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full gradient-primary text-white text-xs flex items-center justify-center font-bold animate-scale-in"
+                  aria-hidden="true"
+                >
+                  {itemCount > 99 ? "99+" : itemCount}
+                </span>
+              )}
+            </Link>
+            <AudioButton
+              speech={`Cart. View your shopping cart. You have ${itemCount} item${itemCount !== 1 ? "s" : ""}.`}
+              label="Cart"
+              className="hidden md:inline-flex"
+            />
+          </div>
 
           {/* Profile/Logout */}
           {isLoggedIn && (
@@ -187,24 +249,89 @@ export function Navigation({
           <div className="container py-4 flex flex-col gap-1">
             {[
               ...NAV_LINKS,
-              { label: "Accessibility", to: "/accessibility" },
-              { label: "Profile", to: "/profile" },
+              {
+                label: "Accessibility",
+                to: "/accessibility",
+                speech:
+                  "Accessibility. View accessibility settings and guides.",
+              },
+              {
+                label: "Profile",
+                to: "/profile",
+                speech: "Profile. View and edit your profile.",
+              },
             ].map((link) => (
+              <div key={link.to} className="flex items-center gap-2">
+                <Link
+                  to={link.to}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    "flex-1 px-4 py-3 rounded-xl text-base font-medium transition-colors min-h-[44px] flex items-center",
+                    isActive(link.to)
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                  data-ocid={`mobile-nav-${link.label.toLowerCase()}`}
+                >
+                  {link.label}
+                </Link>
+                <AudioButton
+                  speech={link.speech}
+                  label={link.label}
+                  className="mr-2"
+                />
+              </div>
+            ))}
+
+            {/* Cart in mobile menu */}
+            <div className="flex items-center gap-2">
               <Link
-                key={link.to}
-                to={link.to}
+                to="/cart"
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "px-4 py-3 rounded-xl text-base font-medium transition-colors min-h-[44px] flex items-center",
-                  isActive(link.to)
+                  "flex-1 px-4 py-3 rounded-xl text-base font-medium transition-colors min-h-[44px] flex items-center gap-2",
+                  isActive("/cart")
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
-                data-ocid={`mobile-nav-${link.label.toLowerCase()}`}
+                data-ocid="mobile-nav-cart"
               >
-                {link.label}
+                Cart{" "}
+                {itemCount > 0 && (
+                  <span className="text-xs bg-primary text-primary-foreground rounded-full px-2 py-0.5">
+                    {itemCount}
+                  </span>
+                )}
               </Link>
-            ))}
+              <AudioButton
+                speech={`Cart. View your shopping cart. You have ${itemCount} item${itemCount !== 1 ? "s" : ""}.`}
+                label="Cart"
+                className="mr-2"
+              />
+            </div>
+
+            {/* Checkout in mobile menu */}
+            <div className="flex items-center gap-2">
+              <Link
+                to="/checkout"
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex-1 px-4 py-3 rounded-xl text-base font-medium transition-colors min-h-[44px] flex items-center",
+                  isActive("/checkout")
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                )}
+                data-ocid="mobile-nav-checkout"
+              >
+                Checkout
+              </Link>
+              <AudioButton
+                speech="Checkout. Proceed to checkout and place your order."
+                label="Checkout"
+                className="mr-2"
+              />
+            </div>
+
             <button
               type="button"
               onClick={() => {

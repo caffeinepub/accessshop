@@ -28,21 +28,21 @@ const ORDER_HISTORY = [
     id: "ORD-2026-001",
     date: "Mar 15, 2026",
     items: ["EchoSphere Pro", "VisionWatch Ultra"],
-    total: 479.98,
+    total: 24998,
     status: "Delivered",
   },
   {
     id: "ORD-2026-002",
     date: "Feb 28, 2026",
     items: ["BigKey Pro Wireless"],
-    total: 89.99,
+    total: 3999,
     status: "Delivered",
   },
   {
     id: "ORD-2026-003",
     date: "Jan 10, 2026",
     items: ["ClearCall Senior Max", "TalkingPen Translator"],
-    total: 249.98,
+    total: 10998,
     status: "Delivered",
   },
 ];
@@ -216,7 +216,7 @@ export default function ProfilePage() {
                     <span className="text-muted-foreground">
                       Lifetime Spend
                     </span>
-                    <span className="font-bold text-primary">$819.95</span>
+                    <span className="font-bold text-primary">₹54,995</span>
                   </div>
                 </div>
               </div>
@@ -468,7 +468,7 @@ export default function ProfilePage() {
                             </div>
                           </div>
                           <span className="font-bold text-primary text-lg flex-shrink-0">
-                            ${order.total.toFixed(2)}
+                            ₹{order.total.toLocaleString("en-IN")}
                           </span>
                         </div>
                         <Separator />

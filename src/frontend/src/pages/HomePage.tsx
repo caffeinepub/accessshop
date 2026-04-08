@@ -15,7 +15,6 @@ import {
   Mic,
   Search,
   ShoppingCart,
-  Star,
   Volume2,
   Zap,
 } from "lucide-react";
@@ -34,34 +33,14 @@ const CATEGORY_CONFIG: Record<
   string,
   { icon: string; iconBg: string; cardBg: string }
 > = {
-  "Voice Assistants": {
-    icon: "🎙️",
-    iconBg: "bg-gradient-to-br from-purple-600 to-purple-800",
-    cardBg: "bg-primary/5 border-primary/15",
-  },
-  "Smart Watches": {
-    icon: "⌚",
-    iconBg: "bg-gradient-to-br from-blue-500 to-cyan-500",
+  electronics: {
+    icon: "🔌",
+    iconBg: "bg-gradient-to-br from-blue-500 to-cyan-600",
     cardBg: "bg-accent/5 border-accent/15",
   },
-  "Large Button Phones": {
-    icon: "📱",
-    iconBg: "bg-gradient-to-br from-emerald-500 to-teal-600",
-    cardBg: "bg-secondary border-border",
-  },
-  "Accessible Keyboards": {
-    icon: "⌨️",
-    iconBg: "bg-gradient-to-br from-yellow-400 to-amber-500",
-    cardBg: "bg-secondary border-border",
-  },
-  Gadgets: {
-    icon: "🔧",
-    iconBg: "bg-gradient-to-br from-orange-500 to-red-600",
-    cardBg: "bg-secondary border-border",
-  },
-  Fashion: {
-    icon: "👕",
-    iconBg: "bg-gradient-to-br from-pink-500 to-fuchsia-600",
+  accessories: {
+    icon: "🎧",
+    iconBg: "bg-gradient-to-br from-purple-500 to-indigo-600",
     cardBg: "bg-primary/5 border-primary/15",
   },
 };
@@ -110,9 +89,7 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
 
   const handleReadAloud = (e: React.MouseEvent) => {
     e.stopPropagation();
-    speak(
-      `${product.name}. Price: $${product.price}. ${product.description}. Rating: ${product.rating} out of 5.`,
-    );
+    speak(`${product.name}. Price: ₹${product.price}. ${product.description}.`);
   };
 
   return (
@@ -157,29 +134,10 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
               {product.name}
             </h3>
             <span className="text-lg font-bold text-primary flex-shrink-0">
-              ${product.price}
+              ₹{product.price.toLocaleString("en-IN")}
             </span>
           </div>
         </Link>
-
-        <div className="flex items-center gap-1.5">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={`star-${product.id}-${i}`}
-              className={`h-3.5 w-3.5 ${
-                i < Math.floor(product.rating)
-                  ? "fill-yellow-400 text-yellow-400"
-                  : "fill-muted text-muted-foreground"
-              }`}
-            />
-          ))}
-          <span className="text-sm font-medium text-foreground ml-0.5">
-            {product.rating}
-          </span>
-          <span className="text-sm text-muted-foreground">
-            ({product.reviewCount.toLocaleString()})
-          </span>
-        </div>
 
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
           {product.description}
@@ -428,9 +386,13 @@ export default function HomePage() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {CATEGORIES.map((cat, i) => {
-              const config = CATEGORY_CONFIG[cat];
+              const config = CATEGORY_CONFIG[cat] ?? {
+                icon: "📦",
+                iconBg: "bg-gradient-to-br from-muted to-secondary",
+                cardBg: "bg-secondary border-border",
+              };
               return (
                 <motion.div
                   key={cat}

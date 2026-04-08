@@ -24,7 +24,6 @@ import {
   Search,
   ShoppingCart,
   SlidersHorizontal,
-  Star,
   Volume2,
   X,
 } from "lucide-react";
@@ -39,18 +38,41 @@ const SORT_LABELS: Record<SortOption, string> = {
   "name-asc": "Name: A → Z",
 };
 
+// Reusable audio speak button
+function AudioBtn({
+  text,
+  label,
+  ocid,
+}: {
+  text: string;
+  label: string;
+  ocid: string;
+}) {
+  const { speak } = useSpeakWithNarration();
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    speak(text);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      aria-label={label}
+      data-ocid={ocid}
+      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent hover:bg-primary hover:text-primary-foreground text-accent-foreground transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 flex-shrink-0"
+    >
+      <Volume2 className="h-4 w-4" aria-hidden="true" />
+    </button>
+  );
+}
+
 function ProductCard({ product, index }: { product: Product; index: number }) {
   const addToCart = useCartStore((s) => s.addToCart);
   const { speak } = useSpeakWithNarration();
-
-  const handleSpeak = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const tags = product.accessibilityTags.join(", ");
-    speak(
-      `${product.name}. Price: $${product.price}. ${product.description}. Accessibility features: ${tags}.`,
-    );
-  };
+  const priceFormatted = `₹${product.price.toLocaleString("en-IN")}`;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,109 +81,116 @@ function ProductCard({ product, index }: { product: Product; index: number }) {
     showCartToast(product.name);
   };
 
+  const handleCartSpeak = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    speak(`Add ${product.name} to cart for ${priceFormatted}`);
+  };
+
   return (
     <motion.article
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: index * 0.05, ease: "easeOut" }}
-      className="card-accessible group hover:-translate-y-1 hover:scale-[1.02] transition-smooth flex flex-col"
+      transition={{ duration: 0.3, delay: index * 0.04, ease: "easeOut" }}
+      className="card-accessible group flex flex-col hover:-translate-y-0.5 hover:shadow-md transition-smooth rounded-xl overflow-hidden border border-border bg-card"
       data-ocid={`product-card-${product.id}`}
-      aria-label={`${product.name}, $${product.price}`}
+      aria-label={`${product.name}, ${priceFormatted}`}
     >
+      {/* Product Image — compact h-36 */}
       <Link
         to="/products/$id"
         params={{ id: product.id }}
-        className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl flex-1"
+        className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         aria-label={`View details for ${product.name}`}
+        tabIndex={0}
       >
-        {/* Image */}
-        <div className="relative overflow-hidden rounded-xl mb-4 bg-muted aspect-[4/3]">
+        <div className="relative overflow-hidden bg-muted h-36 w-full">
           <img
             src={product.imageUrl}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-400"
             loading="lazy"
           />
           {product.featured && (
-            <div className="absolute top-3 left-3">
+            <div className="absolute top-2 left-2">
               <Badge className="gradient-primary text-white border-0 text-xs font-semibold">
-                ⭐ Featured
+                Featured
               </Badge>
             </div>
           )}
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-2 right-2">
             <Badge variant="secondary" className="text-xs font-medium">
               {product.category}
             </Badge>
           </div>
         </div>
-
-        {/* Info */}
-        <div className="space-y-2 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-display font-bold text-lg text-foreground leading-tight line-clamp-2 flex-1">
-              {product.name}
-            </h3>
-            <span className="text-xl font-bold text-primary flex-shrink-0">
-              ${product.price}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Star
-              className="h-4 w-4 fill-yellow-400 text-yellow-400"
-              aria-hidden="true"
-            />
-            <span className="text-sm font-semibold">{product.rating}</span>
-            <span className="text-sm text-muted-foreground">
-              ({product.reviewCount.toLocaleString()} reviews)
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-            {product.description}
-          </p>
-          <div className="flex flex-wrap gap-1 pt-1">
-            {product.accessibilityTags.slice(0, 3).map((tag) => (
-              <Badge
-                key={tag}
-                variant="secondary"
-                className="text-xs rounded-full px-2 py-0.5"
-              >
-                {tag}
-              </Badge>
-            ))}
-            {product.accessibilityTags.length > 3 && (
-              <Badge
-                variant="outline"
-                className="text-xs rounded-full px-2 py-0.5"
-              >
-                +{product.accessibilityTags.length - 3}
-              </Badge>
-            )}
-          </div>
-        </div>
       </Link>
 
-      {/* Actions */}
-      <div className="flex gap-2 pt-4 mt-auto">
-        <Button
-          className="flex-1 btn-primary gap-2 min-h-[44px] text-sm"
-          onClick={handleAddToCart}
-          data-ocid={`btn-add-cart-${product.id}`}
-          aria-label={`Add ${product.name} to cart`}
-        >
-          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-          Add to Cart
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="min-h-[44px] min-w-[44px] flex-shrink-0 hover:bg-accent hover:text-accent-foreground transition-smooth"
-          onClick={handleSpeak}
-          aria-label={`Read ${product.name} aloud`}
-          data-ocid={`btn-read-aloud-${product.id}`}
-        >
-          <Volume2 className="h-4 w-4" aria-hidden="true" />
-        </Button>
+      {/* Card Body */}
+      <div className="flex flex-col flex-1 p-3 gap-2">
+        {/* Product Name Row */}
+        <div className="flex items-start gap-2">
+          <Link
+            to="/products/$id"
+            params={{ id: product.id }}
+            className="flex-1 min-w-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded"
+          >
+            <h3 className="font-display font-bold text-base text-foreground leading-snug line-clamp-2 hover:text-primary transition-colors">
+              {product.name}
+            </h3>
+          </Link>
+          <AudioBtn
+            text={`Product name: ${product.name}`}
+            label={`Read product name: ${product.name}`}
+            ocid={`btn-speak-name-${product.id}`}
+          />
+        </div>
+
+        {/* Price Row */}
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-extrabold text-primary leading-none">
+            {priceFormatted}
+          </span>
+          <AudioBtn
+            text={`Price: ${priceFormatted}`}
+            label={`Read price for ${product.name}`}
+            ocid={`btn-speak-price-${product.id}`}
+          />
+        </div>
+
+        {/* Description Row */}
+        <div className="flex items-start gap-2 flex-1">
+          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 flex-1 min-w-0">
+            {product.description}
+          </p>
+          <AudioBtn
+            text={product.description}
+            label={`Read description for ${product.name}`}
+            ocid={`btn-speak-desc-${product.id}`}
+          />
+        </div>
+
+        {/* Add to Cart Row */}
+        <div className="flex gap-2 pt-1">
+          <Button
+            className="flex-1 gap-1.5 py-2 px-3 text-sm font-semibold min-h-[44px] btn-primary"
+            onClick={handleAddToCart}
+            data-ocid={`btn-add-cart-${product.id}`}
+            aria-label={`Add ${product.name} to cart`}
+          >
+            <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+            Add to Cart
+          </Button>
+          <button
+            type="button"
+            onClick={handleCartSpeak}
+            aria-label={`Read add to cart for ${product.name}`}
+            data-ocid={`btn-speak-cart-${product.id}`}
+            className="inline-flex items-center justify-center w-[44px] min-h-[44px] rounded-lg bg-accent hover:bg-primary hover:text-primary-foreground text-accent-foreground transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 flex-shrink-0 border border-border"
+          >
+            <Volume2 className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
       </div>
     </motion.article>
   );
@@ -198,7 +227,6 @@ export default function ProductsPage() {
           !(k === "sort" && v === "price-asc"),
       ) as [string, string][],
     );
-
     navigate({ to: "/products", search: next });
   }
 
@@ -238,7 +266,7 @@ export default function ProductsPage() {
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="mb-8"
+          className="mb-6"
         >
           <h1 className="text-section mb-1 font-display">All Products</h1>
           <p
@@ -251,8 +279,8 @@ export default function ProductsPage() {
           </p>
         </motion.div>
 
-        {/* Search + Sort row */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        {/* Search + Sort */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-5">
           <div className="relative flex-1">
             <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none"
@@ -263,7 +291,7 @@ export default function ProductsPage() {
               value={query}
               onChange={(e) => updateSearch({ q: e.target.value || undefined })}
               placeholder="Search by name, feature, or tag…"
-              className="h-12 pl-12 pr-10 text-base rounded-xl border-input"
+              className="h-11 pl-12 pr-10 text-base rounded-xl border-input"
               aria-label="Search products"
               data-ocid="input-search"
             />
@@ -289,7 +317,7 @@ export default function ProductsPage() {
               onValueChange={(val) => updateSearch({ sort: val as SortOption })}
             >
               <SelectTrigger
-                className="h-12 w-[200px] rounded-xl text-sm"
+                className="h-11 w-[200px] rounded-xl text-sm"
                 aria-label="Sort products"
                 data-ocid="select-sort"
               >
@@ -309,7 +337,7 @@ export default function ProductsPage() {
         </div>
 
         {/* Category filter */}
-        <fieldset className="border-0 p-0 m-0 mb-8">
+        <fieldset className="border-0 p-0 m-0 mb-6">
           <legend className="sr-only">Filter by category</legend>
           <div className="flex flex-wrap gap-2" data-ocid="category-filter">
             <Filter
@@ -323,9 +351,11 @@ export default function ProductsPage() {
                   type="button"
                   key={cat}
                   onClick={() =>
-                    updateSearch({ category: cat === "All" ? undefined : cat })
+                    updateSearch({
+                      category: cat === "All" ? undefined : cat,
+                    })
                   }
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition-smooth min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
+                  className={`px-3 py-1.5 rounded-full text-sm font-semibold transition-smooth min-h-[40px] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
                     isActive
                       ? "gradient-primary text-white shadow-subtle"
                       : "bg-muted text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -341,7 +371,7 @@ export default function ProductsPage() {
               <button
                 type="button"
                 onClick={() => navigate({ to: "/products", search: {} })}
-                className="px-4 py-2 rounded-full text-sm font-semibold transition-smooth min-h-[44px] text-destructive border border-destructive/30 hover:bg-destructive/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-1 flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-full text-sm font-semibold transition-smooth min-h-[40px] text-destructive border border-destructive/30 hover:bg-destructive/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-1 flex items-center gap-1.5"
                 aria-label="Clear all filters"
                 data-ocid="btn-clear-all-filters"
               >
@@ -352,10 +382,10 @@ export default function ProductsPage() {
           </div>
         </fieldset>
 
-        {/* Products grid */}
+        {/* Products Grid */}
         {filtered.length > 0 ? (
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
             data-ocid="products-grid"
           >
             {filtered.map((product, index) => (
