@@ -1,0 +1,26 @@
+{
+  "overview": "A fully accessible modern eCommerce platform with auto-generated product catalog, voice read-aloud, full accessibility panel (text size, contrast, dark mode, keyboard navigation), Internet Identity authentication, and shopping cart with smooth animations throughout.",
+  "features": [
+    "Internet Identity login and signup with validation",
+    "24+ auto-generated products across 5 categories (voice devices, smart watches, accessible tech, fashion, gadgets)",
+    "Full accessibility panel: text size, high contrast, dark mode, voice narration, keyboard nav guide",
+    "Web Speech API read-aloud on product cards and detail pages",
+    "Zustand-powered cart with localStorage persistence",
+    "Responsive design with gradient backgrounds, rounded cards, and smooth animations",
+    "Product filtering by category and search, sortable by price/name",
+    "About, Contact, Accessibility guide, and Profile pages"
+  ],
+  "category": "ecommerce",
+  "tags": [
+    "ecommerce",
+    "accessibility",
+    "wcag",
+    "voice-narration",
+    "shopping-cart",
+    "react",
+    "zustand",
+    "internet-identity",
+    "animations"
+  ],
+  "last_updated": "2026-04-08T14:23:51.403Z"
+}
